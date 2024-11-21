@@ -84,12 +84,12 @@ public sealed class RadioSystem : EntitySystem
 
         var name = evt.VoiceName;
 
-        // Imperial JobPlayerAndColor Start
+        // Imperial RadioPlayerAndJob Start
         // name = FormattedMessage.EscapeText(name);
 
         string? newName = _jobPlayer.CompletedJobAndPlayer(messageSource, name);
         name = newName;
-        // Imperial JobPlayerAndColor End
+        // Imperial RadioPlayerAndJob End
 
         SpeechVerbPrototype speech;
         if (evt.SpeechVerb != null && _prototype.TryIndex(evt.SpeechVerb, out var evntProto))
@@ -158,10 +158,10 @@ public sealed class RadioSystem : EntitySystem
             RaiseLocalEvent(receiver, ref ev);
         }
 
-        // Imperial JobPlayerAndColor Start
+        // Imperial RadioPlayerAndJob Start
         // if (name != Name(messageSource))
         if ((name != Name(messageSource)) && (name != newName))
-        // Imperial JobPlayerAndColor End
+        // Imperial RadioPlayerAndJob End
             _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Radio message from {ToPrettyString(messageSource):user} as {name} on {channel.LocalizedName}: {message}");
         else
             _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Radio message from {ToPrettyString(messageSource):user} on {channel.LocalizedName}: {message}");
