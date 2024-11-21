@@ -1,3 +1,4 @@
+using Content.Server.Imperial.Radio;
 using Content.Server.Administration.Logs;
 using Content.Server.Chat.Systems;
 using Content.Server.Power.Components;
@@ -28,6 +29,7 @@ public sealed class RadioSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly ChatSystem _chat = default!;
+    [Dependency] private readonly JobPlayerAndColor _jobPlayer = default!;
 
     // set used to prevent radio feedback loops.
     private readonly HashSet<string> _messages = new();
@@ -81,7 +83,13 @@ public sealed class RadioSystem : EntitySystem
         RaiseLocalEvent(messageSource, evt);
 
         var name = evt.VoiceName;
-        name = FormattedMessage.EscapeText(name);
+
+        // Imperial JobPlayerAndColor Start
+        // name = FormattedMessage.EscapeText(name);
+
+        string? newName = _jobPlayer.CompletedJobAndPlayer(messageSource, name);
+        name = newName;
+        // Imperial JobPlayerAndColor End
 
         SpeechVerbPrototype speech;
         if (evt.SpeechVerb != null && _prototype.TryIndex(evt.SpeechVerb, out var evntProto))
@@ -150,7 +158,10 @@ public sealed class RadioSystem : EntitySystem
             RaiseLocalEvent(receiver, ref ev);
         }
 
-        if (name != Name(messageSource))
+        // Imperial JobPlayerAndColor Start
+        // if (name != Name(messageSource))
+        if ((name != Name(messageSource)) && (name != newName))
+        // Imperial JobPlayerAndColor End
             _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Radio message from {ToPrettyString(messageSource):user} as {name} on {channel.LocalizedName}: {message}");
         else
             _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Radio message from {ToPrettyString(messageSource):user} on {channel.LocalizedName}: {message}");
