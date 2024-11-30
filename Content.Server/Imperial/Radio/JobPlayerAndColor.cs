@@ -89,7 +89,7 @@ public sealed class JobPlayerAndColor : EntitySystem
     /// <param name="uid"> id отправителя. В оригинальном коде рации messageSource</param>
     /// <param name="name"> string?. Это по сути то, что будет указано в отправителе. Раньше там писалось просто имя</param>
     /// <returns></returns>
-    public string CompletedJobAndPlayer(EntityUid uid, string? name)
+    public string CompletedJobAndPlayer(EntityUid uid, string name)
     {
         string nameJobPlayer = GetJobPlayer(uid);
         string nameColorPlayer = GetColorPlayer(nameJobPlayer);
