@@ -87,8 +87,7 @@ public sealed class RadioSystem : EntitySystem
         // Imperial RadioPlayerAndJob Start
         // name = FormattedMessage.EscapeText(name);
 
-        string? newName = _jobPlayer.CompletedJobAndPlayer(messageSource, name);
-        name = newName;
+        name = _jobPlayer.CompletedJobAndPlayer(messageSource, name);
         // Imperial RadioPlayerAndJob End
 
         SpeechVerbPrototype speech;
