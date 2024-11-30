@@ -95,7 +95,7 @@ public sealed class JobPlayerAndColor : EntitySystem
         string nameColorPlayer = GetColorPlayer(nameJobPlayer);
 
         // Ескейпим все символы форматирования, что бы игрок не мог форматировать своё имя
-        var displayName = FormattedMessage.EscapeText($"[{nameJobPlayer}] {name}");
+        var displayName = FormattedMessage.EscapeText($"[{nameJobPlayer}] {name ?? "Неизвестно"}");
 
         return $"[bold][color={nameColorPlayer}]{displayName}[/bold][/color]";
     }
