@@ -36,32 +36,36 @@ public sealed class JobPlayerAndColor : EntitySystem
 
         foreach (var proto in prototypes)
         {
-            // Добавляем в словарь только уникальные ID
-            if (!SaveColorForJob.ContainsKey(proto.ID))
+            // Проверяем, что id и color в прототипах не будет иметь значения null, так как у нас храняться только string, а не string?
+            if (!string.IsNullOrEmpty(proto.ID) && !string.IsNullOrEmpty(proto.Color))
             {
-                SaveColorForJob.Add(proto.ID, proto.Color);
+                // Добавляем в словарь только уникальные ID
+                if (!SaveColorForJob.ContainsKey(proto.ID))
+                {
+                    SaveColorForJob.Add(proto.ID, proto.Color);
+                }
             }
         }
     }
 
-    // Словарь для перевода должностей и для должностей состоящих не только из букв
-    private static readonly Dictionary<string, string> JobTranslations = new()
-    {
-        { "Central Commander", "Центральное Командование" },
-        { "Centcom Quarantine Officer", "РХБЗЗ" }
-    };
-
-    private string TranslateJob(string job)
-    {
-        // Ищем перевод в словаре
-        if (JobTranslations.TryGetValue(job, out var translatedJob))
+    // Словарь для перевода должностей
+        private static readonly Dictionary<string, string> JobTranslations = new()
         {
-            return translatedJob;
-        }
+            { "Central Commander", "Центральное Командование" },
+            { "Centcom Quarantine Officer", "РХБЗЗ" }
+        };
 
-        // Возвращаем оригинал, если перевода нет
-        return job;
-    }
+        private string TranslateJob(string job)
+        {
+            // Ищем перевод в словаре
+            if (JobTranslations.TryGetValue(job, out var translatedJob))
+            {
+                return translatedJob;
+            }
+
+            // Возвращаем оригинал, если перевода нет
+            return job;
+        }
 
 	/// <summary>
     /// Для EnityUid ищется карта в руках или в пда. Если карта нашлась, мы смотрим какая там работа и достаём её
@@ -69,32 +73,31 @@ public sealed class JobPlayerAndColor : EntitySystem
     /// <param name="uid"> uid игрока, у которого мы ищем карту</param>
     /// <returns></returns>
     public string? GetJobPlayer(EntityUid uid)
-    {
-        // Проверяем нашлась ли карта и какое id у карты
-        if (_idCardSystem.TryFindIdCard(uid, out var id))
         {
-            // Мы сохраняем работу
-            string? playerJob = id.Comp.LocalizedJobTitle;
-            // Если работа нашлась верно, мы начинаем основной процесс
-            if (playerJob != null)
+            // Проверяем нашлась ли карта и какое id у карты
+            if (_idCardSystem.TryFindIdCard(uid, out var id))
             {
-                // Делаем начало должности с заглавной буквы и сохраняем в playerJob
-                playerJob = char.ToUpper(playerJob[0]) + playerJob.Substring(1);
-                // Заменяем тире, дефисы и минусы на пробелы. Эти символы при форматировании ломают вывод сообщения в рацию
-                playerJob = Regex.Replace(playerJob, @"[-–—−]", " ");
-                // Уберём лишние символы "!?", которые могут ломать в целом вывод сообщения в радио канале
-                playerJob = Regex.Replace(playerJob, @"[^a-zA-Zа-яА-ЯёЁ ]", "");
-                // Переводим должность через словарь. Если перевода нет, playerJob не меняется
-                playerJob = TranslateJob(playerJob);
-                return playerJob.Trim();
+                // Мы сохраняем работу
+                string? playerJob = id.Comp.LocalizedJobTitle;
+                // Если работа нашлась верно, мы начинаем основной процесс
+                if (!string.IsNullOrEmpty(playerJob))
+                {
+                    // Делаем начало должности с заглавной буквы и сохраняем в playerJob
+                    playerJob = char.ToUpper(playerJob[0]) + playerJob.Substring(1);
+                    // Заменяем тире, дефисы и минусы на пробелы. Эти символы при форматировании ломают вывод
+                    playerJob = Regex.Replace(playerJob, @"[-–—−]", " ");
+                    // Уберём лишние символы "!?", которые могут ломать в целом вывод сообщения в радио канале
+                    playerJob = Regex.Replace(playerJob, @"[^a-zA-Zа-яА-ЯёЁ ]", "");
+                    // Переводим должность через словарь. Если перевода нет, playerJob не меняется
+                    playerJob = TranslateJob(playerJob);
+                    // Убрав лишние пробелы, передаём полученное значение
+                    return playerJob.Trim();
 
+                }
             }
-
-
+            // Если работы нет, то возвращается должность "Неизвестно"
+            return "Неизвестно";
         }
-        // Если работы нет, то возвращается должность "Неизвестно"
-        return "Неизвестно";
-    }
 
     /// <summary>
     /// Метод, который отвечает за подбор цвета для должности. Используется словарь, который работает по О(1), что быстрее if и подобного
@@ -116,18 +119,12 @@ public sealed class JobPlayerAndColor : EntitySystem
             if (SaveColorForJob.ContainsKey(normalizedJob))
             {
                 // Если должность найдена в словаре, возвращаем соответствующий цвет
-                string color = SaveColorForJob[normalizedJob];
-                return color;
-            }
-            else
-            {
-                // Если должность не найдена в словаре, возвращаем дефолтный цвет
-                return "lime";
+                return SaveColorForJob[normalizedJob];
             }
         }
 
-        // На всякий случай проверка ещё раз
-        return null;
+        // null не стоит собственно ручно возвращать, исправил на более стабильное значение
+        return "lime";
     }
 
     /// <summary>
@@ -138,26 +135,40 @@ public sealed class JobPlayerAndColor : EntitySystem
     /// <returns></returns>
     public string CompletedJobAndPlayer(EntityUid uid,  string? name)
     {
+        // Если игрок как-то умудрился ввести null в name, то мы делаем Неизвестное имя
+        if (string.IsNullOrEmpty(name))
+        {
+            name = "Неизвестно";
+        }
+
         // Активируем метод для определения должности
         string? nameJobPlayer = GetJobPlayer(uid);
         // Если должность определена, добавляем
-        if (nameJobPlayer != null)
+        if (!string.IsNullOrEmpty(nameJobPlayer))
         {
             // Добавляем должность. Важно это сделать перед FormattedMessage
             name = $"[{nameJobPlayer}] {name}";
         }
+        else
+        {
+            // Необходимая проверка от крашей
+            name = $"[Неизвестно] {name}";
+        }
 
         // Это необходимость, которая присутствует в оригинальном коде рации. До неё color и болд не будут работать. А после неё уже не добавить текст, не будет отображаться в рации
-        if (name != null)
-        {
-            name = FormattedMessage.EscapeText(name);
-        }
+        name = FormattedMessage.EscapeText(name);
 
         // Определяем какой цвет должен быть у данной должности
         string? nameColorPlayer = GetColorPlayer(nameJobPlayer);
 
-        // Если всё сработало правильно, будет работать этот код. Я даже не могу придумать случаев, когда будет работать не это условие, а return вконце метода
-        if ((nameColorPlayer != null) && (nameJobPlayer != null))
+        if (string.IsNullOrEmpty(nameColorPlayer))
+        {
+            // Проверка от крашей
+            nameColorPlayer = "lime";
+        }
+
+        // В основном, будет работать данный return в if
+        if (!string.IsNullOrEmpty(nameColorPlayer) && !string.IsNullOrEmpty(nameJobPlayer))
         {
             // Тут идёт формирование как раз необходимого имени с должностью и цветом
             string? nameEnd = $"[bold][color={nameColorPlayer}][{nameJobPlayer}] {name}[/bold][/color]";
@@ -165,9 +176,8 @@ public sealed class JobPlayerAndColor : EntitySystem
             return nameEnd;
         }
 
-        // Если произошло второе пришествие, мы всё равно отправляем [Неизвестный] Имя (цвет лайма). Всё равноо C# не позволит мне удалить этот return
-        return $"[bold][color=lime][Неизвестно] {Name(uid)}[/bold][/color]";
-
+        // Если произошло второе пришествие, мы всё равно вернём корректные значения, которые не вызовут краша игры
+        return $"[bold][color=lime]{name}[/bold][/color]";
     }
 }
 
