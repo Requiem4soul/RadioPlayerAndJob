@@ -2,6 +2,8 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Imperial.Radio;
 
+// Copyright (c) 2024 Requiem4soul (https://github.com/Requiem4soul). Licensed under MIT License. This copyright notice must not be removed. This file
+
 /// <summary>
 /// Прототип для хранения данных о должностях и их цветах.
 /// </summary>

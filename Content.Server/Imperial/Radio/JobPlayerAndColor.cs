@@ -6,6 +6,9 @@ using Content.Shared.Imperial.Radio;
 
 namespace Content.Server.Imperial.Radio;
 
+
+// Copyright (c) 2024 Requiem4soul (https://github.com/Requiem4soul). Licensed under MIT License. This copyright notice must not be removed. This file
+
 /// <summary>
 /// Данный класс отвечает за отображения должностей в канале рации. То есть, если ошибка в Content.Radi.EnitySystem - вам сюда. Так же в самом оригинальном коде рации есть способ быстро востановить его оригинальную работу без моего класса
 /// </summary>
